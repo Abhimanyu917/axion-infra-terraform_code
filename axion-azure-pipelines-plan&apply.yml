@@ -3,14 +3,27 @@ trigger: none
 pool:
   name: abhi_agent
 
+variables:
+  terraformWorkingDirectory: '$(System.DefaultWorkingDirectory)/env/dev'
+
+  azureServiceConnection: 'abhi_azure_connection'
+  azureSubscriptionId: 'cf72e154-d368-4a84-87cf-577efd0a8880'
+
+  backendResourceGroup: 'dev-backend'
+  backendStorageAccount: 'devstrgaks'
+  backendContainer: 'tfstate'
+  backendKey: 'vms/terraform.tfstate'
+
+
 stages:
 
-- stage: terraformvalidate
-  displayName: Terraform Init and Validate
+- stage: terraform_plan
+  displayName: Terraform Init Validate Plan
 
   jobs:
-  - job: terraform_init_validate
-    displayName: Terraform Init and Validate
+
+  - job: terraform
+    displayName: Terraform
 
     steps:
 
@@ -19,48 +32,28 @@ stages:
       inputs:
         provider: 'azurerm'
         command: 'init'
-        workingDirectory: '$(System.DefaultWorkingDirectory)/env/dev'
-        backendServiceArm: 'abhi_azure_connection'
-        backendAzureRmOverrideSubscriptionID: 'cf72e154-d368-4a84-87cf-577efd0a8880'
-        backendAzureRmResourceGroupName: 'dev-backend'
-        backendAzureRmStorageAccountName: 'devstrgaks'
-        backendAzureRmContainerName: 'tfstate'
-        backendAzureRmKey: 'vms/terraform.tfstate'
+        workingDirectory: '$(terraformWorkingDirectory)'
+
+        backendServiceArm: '$(azureServiceConnection)'
+        backendAzureRmOverrideSubscriptionID: '$(azureSubscriptionId)'
+        backendAzureRmResourceGroupName: '$(backendResourceGroup)'
+        backendAzureRmStorageAccountName: '$(backendStorageAccount)'
+        backendAzureRmContainerName: '$(backendContainer)'
+        backendAzureRmKey: '$(backendKey)'
+
 
     - task: TerraformTask@5
       displayName: Terraform Validate
       inputs:
         provider: 'azurerm'
         command: 'validate'
-        workingDirectory: '$(System.DefaultWorkingDirectory)/env/dev'
+        workingDirectory: '$(terraformWorkingDirectory)'
 
-
-- stage: terraformplan
-  displayName: Terraform Plan
-
-  jobs:
-  - job: terraform_plan
-    displayName: Plan Job
-
-    steps:
-
-    - task: TerraformTask@5
-      displayName: Terraform Init for Plan
-      inputs:
-        provider: 'azurerm'
-        command: 'init'
-        workingDirectory: '$(System.DefaultWorkingDirectory)/env/dev'
-        backendServiceArm: 'abhi_azure_connection'
-        backendAzureRmOverrideSubscriptionID: 'cf72e154-d368-4a84-87cf-577efd0a8880'
-        backendAzureRmResourceGroupName: 'dev-backend'
-        backendAzureRmStorageAccountName: 'devstrgaks'
-        backendAzureRmContainerName: 'tfstate'
-        backendAzureRmKey: 'vms/terraform.tfstate'
 
     - task: TerraformTask@5
       displayName: Terraform Plan
       inputs:
         provider: 'azurerm'
         command: 'plan'
-        workingDirectory: '$(System.DefaultWorkingDirectory)/env/dev'
-        environmentServiceNameAzureRM: 'abhi_azure_connection'
+        workingDirectory: '$(terraformWorkingDirectory)'
+        environmentServiceNameAzureRM: '$(azureServiceConnection)'
