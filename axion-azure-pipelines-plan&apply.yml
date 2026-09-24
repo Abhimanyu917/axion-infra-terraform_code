@@ -1,0 +1,40 @@
+trigger: none
+pool:
+  name: abhi_agent
+
+stages:
+  - stage: terraformvalidate
+    jobs:
+      - job: 
+        displayName: Tereform init and validate
+        steps:
+        - task: TerraformTask@5
+          inputs:
+            provider: 'azurerm'
+            command: 'init'
+            workingDirectory: '$(System.DefaultWorkingDirectory)/env/dev'
+            backendServiceArm: 'abhi_azure_connection'
+            backendAzureRmOverrideSubscriptionID: 'cf72e154-d368-4a84-87cf-577efd0a8880'
+            backendAzureRmResourceGroupName: 'dev-backend'
+            backendAzureRmStorageAccountName: 'devstrgaks'
+            backendAzureRmContainerName: 'tfstate'
+            backendAzureRmKey: 'vms/terraform.tfstate'
+
+        - task: TerraformTask@5
+          inputs:
+            provider: 'azurerm'
+            command: 'validate'
+            workingDirectory: '$(System.DefaultWorkingDirectory)/env/dev'
+
+  - stage: 
+    displayName: terrform Plan
+    jobs:
+      - job: 
+        displayName: Plan Job
+        steps:
+        - task: TerraformTask@5
+          inputs:
+            provider: 'azurerm'
+            command: 'plan'
+            workingDirectory: '$(System.DefaultWorkingDirectory)/env/dev'
+            environmentServiceNameAzureRM: 'abhi_azure_connection'
