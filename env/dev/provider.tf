@@ -9,7 +9,7 @@ backend "azurerm" {
     resource_group_name  = "dev-backend"
     storage_account_name = "devstrgaks"
     container_name       = "tfstate"
-    key                  = "terraform.tfstate"
+    key                  = "vms/terraform.tfstate"
   }
 }
 
